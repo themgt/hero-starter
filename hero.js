@@ -57,16 +57,61 @@
 //   }
 // };
 
-// // The "Unwise Assassin"
-// // This hero will attempt to kill the closest enemy hero. No matter what.
-// var move = function(gameData, helpers) {
-//   var myHero = gameData.activeHero;
-//   if (myHero.health < 30) {
-//     return helpers.findNearestHealthWell(gameData);
-//   } else {
-//     return helpers.findNearestEnemy(gameData);
-//   }
-// };
+// The "Unwise Assassin"
+// This hero will attempt to kill the closest enemy hero. No matter what.
+var move = function(gameData, helpers) {
+  var myHero = gameData.activeHero;
+  var healthWellStats = helpers.findNearestObjectDirectionAndDistance(gameData.board, myHero, function(boardTile) {
+    return boardTile.type === 'HealthWell'
+  });
+  
+  var closeEnemy = helpers.findNearestObjectDirectionAndDistance(gameData.board, myHero, function(boardTile) {
+    return boardTile.type === 'Hero' && boardTile.team !== myHero.team
+  });
+  
+  var closeMine = helpers.findNearestObjectDirectionAndDistance(gameData.board, myHero, function(boardTile) {
+    if (boardTile.type === 'DiamondMine') {
+      if (boardTile.owner) {
+        return boardTile.owner.team !== myHero.team;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }, gameData.board);
+  
+  var distanceToHealthWell = healthWellStats.distance;
+  var directionToHealthWell = healthWellStats.direction;
+  var weak_enemy = helpers.findNearestWeakerEnemy(gameData);
+  var friend = helpers.findNearestTeamMember(gameData);
+  
+  if (myHero.health < 80 && distanceToHealthWell === 1) {
+    //Heal if you aren't full health and are close to a health well already
+    console.log("[AI BOT]: grabbing health: " + directionToHealthWell);
+     return directionToHealthWell;
+  } else if (myHero.health < 20) {
+    console.log("[AI BOT]: need health: " + directionToHealthWell);
+     return directionToHealthWell;
+  } else{
+    if(closeMine.direction != null && (closeEnemy.direction == null || (closeMine.distance < closeEnemy.distance || closeEnemy.health > myHero.health))){
+      console.log("[AI BOT]: mine! " + closeMine.direction);
+      return closeMine.direction;
+    } else if (closeEnemy != null && closeEnemy.health <= myHero.health){
+      console.log("[AI BOT]: attack!: " + closeEnemy.direction);
+      return closeEnemy.direction;
+    } else if (weak_enemy){
+      console.log("[AI BOT]: attack weakling!: " + weak_enemy);
+      return weak_enemy;
+    } else if (friend){
+      console.log("[AI BOT]: friend!: " + friend);
+      return friend;
+    } else{
+      console.log("[AI BOT]: need health to fight! " + directionToHealthWell);
+      return directionToHealthWell;
+    }
+  }
+};
 
 // // The "Careful Assassin"
 // // This hero will attempt to kill the closest weaker enemy hero.
@@ -80,7 +125,7 @@
 // };
 
 // // The "Safe Diamond Miner"
-var move = function(gameData, helpers) {
+/*var move = function(gameData, helpers) {
   var myHero = gameData.activeHero;
 
   //Get stats on the nearest health well
@@ -103,7 +148,7 @@ var move = function(gameData, helpers) {
     //If healthy, go capture a diamond mine!
     return helpers.findNearestNonTeamDiamondMine(gameData);
   }
-};
+};*/
 
 // // The "Selfish Diamond Miner"
 // // This hero will attempt to capture diamond mines (even those owned by teammates).

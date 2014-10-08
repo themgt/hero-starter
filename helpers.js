@@ -122,7 +122,8 @@ helpers.findNearestObjectDirectionAndDistance = function(board, fromTile, tileCa
           return {
             direction: correctDirection,
             distance: distance,
-            coords: finalCoords
+            coords: finalCoords,
+            health: nextTile.health
           };
 
           // If the tile is unoccupied, then we need to push it into our queue
